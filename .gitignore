@@ -5,3 +5,4 @@ node_modules
 /lib
 /mini_vimrc/data_home
 /src/tests/coc.nvim
+package-lock.json
