@@ -62,6 +62,7 @@ Explorer extension for [coc.nvim](https://github.com/neoclide/coc.nvim)
 - [x] Bookmark source (require [coc-bookmark](https://github.com/voldikss/coc-bookmark))
 - [ ] Git source
   - [ ] Git actions
+- [ ] Pinned Directory source
 - [x] Show help
 
 ## Command
