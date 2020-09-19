@@ -1,5 +1,5 @@
-import { workspace, Window } from 'coc.nvim';
-import { Notifier } from '.';
+import { workspace, Window, Disposable } from 'coc.nvim';
+import { asyncCatchError, Notifier } from '.';
 
 let _supportedSetbufline: boolean | undefined = undefined;
 export async function supportedSetbufline() {
@@ -25,6 +25,20 @@ export function supportedBufferHighlight() {
 export async function enableWrapscan() {
   const wrapscan = await workspace.nvim.getOption('wrapscan');
   return !!wrapscan;
+}
+
+export async function registerRuntimepath(extensionPath: string) {
+  const { nvim } = workspace;
+  const rtp = (await nvim.getOption('runtimepath')) as string;
+  const paths = rtp.split(',');
+  if (!paths.includes(extensionPath)) {
+    await nvim.command(
+      `execute 'noa set rtp+='.fnameescape('${extensionPath.replace(
+        /'/g,
+        "''",
+      )}')`,
+    );
+  }
 }
 
 export async function displayWidth(str: string) {
@@ -103,94 +117,4 @@ export async function bufnrByWinnrOrWinid(winnrOrWinid: number | undefined) {
   } else {
     return undefined;
   }
-}
-
-export async function prompt(msg: string): Promise<'yes' | 'no' | undefined>;
-export async function prompt<T extends string>(
-  msg: string,
-  choices: T[],
-  defaultChoice?: T,
-): Promise<T | undefined>;
-export async function prompt(
-  msg: string,
-  choices?: string[],
-  defaultChoice?: string,
-): Promise<string | undefined> {
-  if (!choices) {
-    choices = ['yes', 'no'];
-    defaultChoice = 'no';
-  }
-  const defaultNumber = defaultChoice ? choices.indexOf(defaultChoice) : -1;
-  const result = (await workspace.nvim.call('confirm', [
-    msg,
-    choices
-      .map((choice) => {
-        let index = [...choice].findIndex((ch) => /[A-Z]/.test(ch));
-        if (index === -1) {
-          index = 0;
-        }
-        return (
-          choice.slice(0, index) +
-          '&' +
-          choice[index].toUpperCase() +
-          choice.slice(index + 1)
-        );
-      })
-      .join('\n'),
-    defaultNumber + 1,
-  ])) as number;
-  if (result === 0) {
-    return;
-  } else {
-    return choices[result - 1];
-  }
-}
-
-export type InputCompletion =
-  | undefined
-  | 'arglist'
-  | 'augroup'
-  | 'buffer'
-  | 'behave'
-  | 'color'
-  | 'command'
-  | 'compiler'
-  | 'cscope'
-  | 'dir'
-  | 'environment'
-  | 'event'
-  | 'expression'
-  | 'file'
-  | 'file_in_path'
-  | 'filetype'
-  | 'function'
-  | 'help'
-  | 'highlight'
-  | 'history'
-  | 'locale'
-  | 'mapclear'
-  | 'mapping'
-  | 'menu'
-  | 'messages'
-  | 'option'
-  | 'packadd'
-  | 'shellcmd'
-  | 'sign'
-  | 'syntax'
-  | 'syntime'
-  | 'tag'
-  | 'tag_listfiles'
-  | 'user'
-  | 'var'
-  | string;
-
-export async function input(
-  prompt: string,
-  defaultInput = '',
-  completion: InputCompletion = undefined,
-): Promise<string> {
-  return workspace.nvim.callAsync('coc#util#with_callback', [
-    'input',
-    [prompt, defaultInput, completion],
-  ]);
 }

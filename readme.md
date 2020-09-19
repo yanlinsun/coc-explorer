@@ -48,6 +48,7 @@ Explorer extension for [coc.nvim](https://github.com/neoclide/coc.nvim)
     - [x] Selection
     - [x] Cut / Copy / Paste
     - [x] Delete action use trash by default
+    - [x] Other actions, press `?` in explorer to check out the all actions
   - [x] Git status
   - [x] Reveal current file in real time (neovim only)
   - [x] Icons, use [nerdfont](https://github.com/ryanoasis/nerd-fonts)
@@ -501,7 +502,7 @@ Default: <pre><code>"labeling"</code></pre>
 Default: <pre><code>true</code></pre>
 </details>
 <details>
-<summary><code>explorer.openAction.strategy</code>: Strategy for open action. type: <code>"select" | "vsplit" | "split" | "tab" | "previousBuffer" | "previousWindow" | "sourceWindow"</code></summary>
+<summary><code>explorer.openAction.strategy</code>: Strategy for open action. type: <code>"select" | "split" | "split:plain" | "split:intelligent" | "vsplit" | "vsplit:plain" | "vsplit:intelligent" | "tab" | "previousBuffer" | "previousWindow" | "sourceWindow"</code></summary>
 Default: <pre><code>"select"</code></pre>
 </details>
 <details>
@@ -545,6 +546,10 @@ Default: <pre><code>[
     "expand": true
   }
 ]</code></pre>
+</details>
+<details>
+<summary><code>explorer.enableFloatinput</code>: Enable integrated with coc-floatinput. type: <code>boolean</code></summary>
+Default: <pre><code>true</code></pre>
 </details>
 <details>
 <summary><code>explorer.icon.enableNerdfont</code>: Enable nerdfont. type: <code>boolean</code></summary>

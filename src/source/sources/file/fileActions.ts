@@ -19,11 +19,7 @@ import { workspace, listManager } from 'coc.nvim';
 import open from 'open';
 import { driveList } from '../../../lists/drives';
 import { gitManager } from '../../../gitManager';
-import {
-  RevealStrategy,
-  OpenStrategy,
-  revealStrategyList,
-} from '../../../types';
+import { RevealStrategy, revealStrategyList } from '../../../types';
 import { explorerWorkspaceFolderList } from '../../../lists/workspaceFolders';
 
 export function initFileActions(file: FileSource) {
@@ -89,7 +85,7 @@ export function initFileActions(file: FileSource) {
             targetPath = args[1];
             if (!targetPath) {
               targetPath = await input(
-                'Input a reveal path: ',
+                'Input a reveal path:',
                 file.currentNode()?.fullpath ?? '',
                 'file',
               );
@@ -180,7 +176,7 @@ export function initFileActions(file: FileSource) {
           async actionArgs() {
             return [
               await input(
-                'input a cd path: ',
+                'input a cd path:',
                 file.currentNode()?.fullpath ?? '',
                 'file',
               ),
@@ -202,7 +198,7 @@ export function initFileActions(file: FileSource) {
   );
   file.addNodeAction(
     'open',
-    async ({ node, args: [openStrategy, ...args] }) => {
+    async ({ node, args }) => {
       if (node.directory) {
         const directoryAction = file.config.get('openAction.for.directory');
         if (directoryAction) {
@@ -210,7 +206,6 @@ export function initFileActions(file: FileSource) {
         }
       } else {
         await file.openAction(node, () => node.fullpath, {
-          openStrategy: openStrategy as OpenStrategy,
           args,
         });
       }
@@ -338,6 +333,7 @@ export function initFileActions(file: FileSource) {
       if (file.copiedNodes.size > 0) {
         const nodes = Array.from(file.copiedNodes);
         await overwritePrompt(
+          'paste',
           nodes.map((node) => ({
             source: node.fullpath,
             target: pathLib.join(targetDir, pathLib.basename(node.fullpath)),
@@ -350,6 +346,7 @@ export function initFileActions(file: FileSource) {
       } else if (file.cutNodes.size > 0) {
         const nodes = Array.from(file.cutNodes);
         await overwritePrompt(
+          'paste',
           nodes.map((node) => ({
             source: node.fullpath,
             target: pathLib.join(targetDir, pathLib.basename(node.fullpath)),
@@ -423,12 +420,20 @@ export function initFileActions(file: FileSource) {
   file.addNodeAction(
     'addFile',
     async ({ node, args }) => {
-      let filename =
-        args[0] ?? (await input('Input a new filename: ', '', 'file'));
-      filename = filename.trim();
+      let filename: string | undefined;
+
+      const promptText = 'Input a new filename:';
+      if (args[0]) {
+        filename = args[0];
+      } else {
+        filename = await input(promptText, '', 'file');
+      }
+
+      filename = filename?.trim();
       if (!filename) {
         return;
       }
+
       if (['/', '\\'].includes(filename[filename.length - 1])) {
         await file.doAction('addDirectory', node, [filename]);
         return;
@@ -436,6 +441,7 @@ export function initFileActions(file: FileSource) {
       const putTargetNode = file.getPutTargetNode(node);
       const targetPath = pathLib.join(putTargetNode.fullpath, filename);
       await overwritePrompt(
+        'add file',
         [
           {
             source: undefined,
@@ -466,6 +472,7 @@ export function initFileActions(file: FileSource) {
       const putTargetNode = file.getPutTargetNode(node);
       const targetPath = pathLib.join(putTargetNode.fullpath, directoryName);
       await overwritePrompt(
+        'add directory',
         [
           {
             source: undefined,
@@ -497,16 +504,21 @@ export function initFileActions(file: FileSource) {
         return;
       }
 
-      const targetPath = await input(
-        `Rename: ${node.fullpath} -> `,
+      let targetPath: string | undefined;
+
+      targetPath = await input(
+        `Rename: ${node.fullpath} ->`,
         node.fullpath,
         'file',
       );
-      if (targetPath.length === 0) {
+
+      targetPath = targetPath?.trim();
+      if (!targetPath) {
         return;
       }
 
       await overwritePrompt(
+        'rename',
         [
           {
             source: node.fullpath,
